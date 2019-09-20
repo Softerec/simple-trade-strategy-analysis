@@ -9,6 +9,6 @@ Simulation of simple trading strategy is based on moving averages (50 and 250).
 Purchase is made at the moment when shorter moving average cross from the bottom the longer moving average.
 Selling take place when price rise or falls certain percent from the purchase price.
 ( in this software initial limits are: profit when +5% reached, loss when -5% )
-Transactions are displayed and result of the simple strategy tested is displayed.
+Transactions are displayed and result of the executed strategy is displayed.
 
 (When run in Windows then message "Gain" is shown in green, message "Loss" is shown in red.)
