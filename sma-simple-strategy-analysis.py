@@ -202,10 +202,8 @@ def main():
     #files_list = clean_file_names(files_list)
     print(files_list)
 
-    #BELOW TWO LINES ARE TEMPORARY ONLY TO ANALYZE SINGLE FILE , TO BE REMOVED AFTER TESTS !!!! !!! !!! !!!
     files=[]
     files=files_list
-    #files=['MINIADI Analog Devices.csv']#, file22 ]
     
     file_counter = 0
 
