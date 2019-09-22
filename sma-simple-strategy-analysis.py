@@ -13,6 +13,8 @@ Sell take place when price rise or falls certain percent from the purchase price
 
 Each transaction is being displayed and the final result of the simple strategy also.
 
+Run script from the same location as csv files.
+
 My first script in Github, written for Windows in 2017.
 '''
 
