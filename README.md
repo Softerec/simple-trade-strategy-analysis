@@ -13,4 +13,4 @@ Selling take place when price rise or falls certain percent from the purchase pr
 ( in this software initial limits are: profit when +5% reached, loss when -5% )
 
 Transactions are displayed and result of the executed strategy is displayed.
-(When run in Windows then message "Gain" is shown in green, message "Loss" is shown in red.)
+(in Windows terminal: message "Gain" is shown in green, message "Loss" is shown in red.)
