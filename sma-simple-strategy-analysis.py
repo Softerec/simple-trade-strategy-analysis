@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 ''' Application checks simple trading strategy on historical prices of specific assets.
 
 Prices of specific assets are stored in .csv files (downloaded from yahoo finance).
@@ -12,8 +11,11 @@ Simple trading strategy execution:
 Purchase is made at the moment when SMA50 cross from the bottom SMA250.
 Sell take place when price rise or falls certain percent from the purchase price.
 
-Each transaction is being displayed and the final result of the simple strategy also.  
+Each transaction is being displayed and the final result of the simple strategy also.
+
+My first useful script in Python, written for Windows in 2017.
 '''
+
 
 import os
 import csv
@@ -40,44 +42,6 @@ def find_file_names(pattern, path):
     return list_of_file_names
 
 
-def clean_file_names(list_of_files):
-    '''Removes ./ from the begining of the file names in the list of the file names.
-
-    Parameters
-    list_of_files: list of names of files with extension, example file name in the list: './yahoo.csv'.
-
-    Returns
-    cleaned_list: cleaned list of names of files with extension, example file name in the list: 'yahoo.csv'.
-    '''
-    
-    cleaned_list=[]
-    
-    for file_name in list_of_files:
-        if file_name[0] == '.':
-            file_name = file_name[1:]
-            if file_name[0] == '/':
-                file_name = file_name[1:]
-        cleaned_list.append(file_name)
-
-    return cleaned_list
-
-class bcolors:
-    '''To include colors in display of profit or loss transactions.
-    Brings effect in windows, does not bring effect in Raspbian.'''
-
-    
-    Blue = '\033[94m'
-    Green = '\033[92m'
-    Red = '\033[91m'
-    ENDC = '\033[0m'
-
-    def disable(self):
-        self.Blue = ''
-        self.Green = ''
-        self.Red = ''
-        self.ENDC = ''
-
-
 def load_data_from_csv(file):
     '''Loads required data from given csv file to data structure for later usage in simulation of trading strategy.
     
@@ -86,6 +50,8 @@ def load_data_from_csv(file):
 
     Returns
     list_of_numbers : list of specific data extracted used later for simulation of traiding strategy
+    
+    TODO: ADD HERE DETAILS OF DATA ACQUIRED !!!
     '''
     with open(file) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
@@ -168,8 +134,7 @@ def trading_strategy_sim(list_of_numbers, sell_percent_profit, sell_percent_loss
                 profit_sell_price = row_of_numbers2[1]
                 transaction_day = counter2+250
                 transaction=['Day:', transaction_day, ' Profit sell price', profit_sell_price, 'result: ', result_in_the_day]
-                print(transaction)
-                print(bcolors.Green + ' Gain' + bcolors.ENDC)
+                print(transaction,  bcolors.Green + ' Gain' + bcolors.ENDC)
                 transactions.append(transaction)
                 transaction_on = 0
                 final_result = final_result + result_in_the_day
@@ -178,8 +143,7 @@ def trading_strategy_sim(list_of_numbers, sell_percent_profit, sell_percent_loss
                 loss_sell_price = row_of_numbers2[1]
                 transaction_day = counter2+250
                 transaction=['Day:', transaction_day, ' Loss sell price', loss_sell_price, 'result: ', result_in_the_day]
-                print(transaction)
-                print(bcolors.Red + ' Loss' + bcolors.ENDC)
+                print(transaction, bcolors.Red + ' Loss' + bcolors.ENDC)
                 transactions.append(transaction)
                 transaction_on = 0
                 final_result = final_result + result_in_the_day
@@ -187,8 +151,46 @@ def trading_strategy_sim(list_of_numbers, sell_percent_profit, sell_percent_loss
     return final_result
 
 
-def main():
+def clean_file_names(list_of_files):
+    '''Needed when running in Raspian, not needed and not used in Windows.
+    Removes ./ from the begining of the file names in the list of the file names.
 
+    Parameters
+    list_of_files: list of names of files with extension, example file name in the list: './yahoo.csv'.
+
+    Returns
+    cleaned_list: cleaned list of names of files with extension, example file name in the list: 'yahoo.csv'.
+    '''
+    
+    cleaned_list=[]
+    
+    for file_name in list_of_files:
+        if file_name[0] == '.':
+            file_name = file_name[1:]
+            if file_name[0] == '/':
+                file_name = file_name[1:]
+        cleaned_list.append(file_name)
+
+    return cleaned_list
+
+
+class bcolors:
+    '''To include colors in display of profit or loss transactions.
+    Brings effect in windows terminal, does not bring effect in Raspbian.'''
+    
+    Blue = '\033[94m'
+    Green = '\033[92m'
+    Red = '\033[91m'
+    ENDC = '\033[0m'
+
+    def disable(self):
+        self.Blue = ''
+        self.Green = ''
+        self.Red = ''
+        self.ENDC = ''
+
+
+def main():
     # File names filter for search.
     file_name_pattern = "*.csv"
 
@@ -197,20 +199,21 @@ def main():
 
     #  Find files as per specified file mask and under specified folder
     files_list =  find_file_names(file_name_pattern, search_path)
-    print(files_list)
+    print("\n\nFound csv files for analysis:")
+    for csv_file_name in files_list:
+        print('\t' + csv_file_name[2:])
 
+    #In Raspian, uncomment below line
     #files_list = clean_file_names(files_list)
-    print(files_list)
 
-    files=[]
-    files=files_list
     
     file_counter = 0
+    instruments_results=dict()
 
-    # Repeats same simulation for all csv files included in the file list.
-    for file_counter in range(0,len(files)):
+    # Repeats same traiding simulation for csv files included in the files list.
+    for file_counter in range(0,len(files_list)):
 
-        file = files[file_counter]
+        file = files_list[file_counter]
 
         # At the begining of file analysis the file name is displayed.
         print ('\nFile for analysis:', file)
@@ -220,11 +223,19 @@ def main():
         
         final_result = trading_strategy_sim(list_of_numbers, 0.05, -0.05)
         
-        print('-----> Final result of',file,'analysis is:', round(final_result*100, 4),'%')
+        print('-----> Final result of',file[2:],'analysis is:', round(final_result*100, 4),'%')
+        instruments_results[file] = round(final_result*100, 4)
 
-    print('\n\n>End of the execution.<')
+    print('\nResults of the traiding strategy for each instrument (csv file):')
+    for i in instruments_results:
+        if instruments_results[i] > 0:
+            result = bcolors.Green + str(instruments_results[i]) + ' %' + bcolors.ENDC
+        else:
+            result = bcolors.Red + str(instruments_results[i]) + ' %' + bcolors.ENDC
+        print(i[2:],'\t results in: ', result)
+
+    print('\nThe end of the execution.')
     
-
 
 if __name__ == "__main__":
     main()
