@@ -13,7 +13,7 @@ Sell take place when price rise or falls certain percent from the purchase price
 
 Each transaction is being displayed and the final result of the simple strategy also.
 
-My first useful script in Python, written for Windows in 2017.
+My first script in Github, written for Windows in 2017.
 '''
 
 
