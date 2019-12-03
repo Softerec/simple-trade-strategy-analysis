@@ -19,4 +19,4 @@ Usage: run the script from the folder where csv files are placed.
 
 Please see below demo video (gif) which shows usage of the sma-simple-trading-strategy-analysis.
 
-SMA-analysis-demo.gif
+![demo](SMA-analysis-demo.gif)
