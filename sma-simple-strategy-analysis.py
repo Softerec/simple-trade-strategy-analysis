@@ -1,27 +1,26 @@
 # -*- coding: utf-8 -*-
 ''' Application checks simple trading strategy on historical prices of specific assets.
 
-Prices of specific assets are stored in .csv files (downloaded from yahoo finance).
-Each of the csv files contain historical prices of specific equity or fund.
+Prices of specific assets are taken from .csv files (downloaded from yahoo finance).
+Each csv file contains historical prices of specific equity or fund.
 
-Only one simple trading strategy is tested.
-The simple trading strategy test is based on moving averages (SMA 50 and SMA 250).
+A simple trading strategy is based on moving averages (SMA 50 and SMA 250) is tested.
 
 Simple trading strategy execution:
 Purchase is made at the moment when SMA50 cross from the bottom SMA250.
-Sell take place when price rise or falls certain percent from the purchase price.
+Sell take place when price rises or falls certain percent from the purchase price.
 
-Each transaction is being displayed and the final result of the simple strategy also.
+Each transaction is being displayed and the final outcome of the strategy (in %).
 
-Run script from the same location as csv files.
-
-My first script in Github, written for Windows in 2017.
+Written in 2017 in Windows 7 and checked later in Widnows 10.
 '''
-
 
 import os
 import csv
 import fnmatch
+
+# True execute tests only for first 3 found csv files
+in_development = False
 
 
 def find_file_names(pattern, path):
@@ -41,19 +40,24 @@ def find_file_names(pattern, path):
         for name in files:
             if fnmatch.fnmatch(name, pattern):
                 list_of_file_names.append(os.path.join(root, name))
+
+            # Below condition is used in development to skip inputs and reduce running time.
+            if in_development:
+                if len(list_of_file_names) > 3:
+                    return list_of_file_names
+                    break
+
     return list_of_file_names
 
 
 def load_data_from_csv(file):
-    '''Loads required data from given csv file to data structure for later usage in simulation of trading strategy.
+    '''Loads required data from given csv file to structure for simulation of trading strategy.
     
     Parameters
     file: a name of csv file located in the same diretory as the script
 
     Returns
     list_of_numbers : list of specific data extracted used later for simulation of traiding strategy
-    
-    TODO: ADD HERE DETAILS OF DATA ACQUIRED !!!
     '''
     with open(file) as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
@@ -122,8 +126,8 @@ def trading_strategy_sim(list_of_numbers, sell_percent_profit, sell_percent_loss
             transaction_on = 1 # flag informs that the last transaction was purchase
             purchase_price = row_of_numbers2[1]
             transaction_day = counter2+250
-            transaction=['Day:',transaction_day, ' Purchase price ', purchase_price]
-            print(transaction)
+            transaction=[transaction_day, purchase_price]
+            print('Day: {0}. Purchase price: {1}'.format(transaction[0],transaction[1]))
             transactions.append(transaction)
 
         previous_sma50 = sma50
@@ -135,8 +139,8 @@ def trading_strategy_sim(list_of_numbers, sell_percent_profit, sell_percent_loss
             if ((result_in_the_day > sell_percent_profit) & transaction_on): # condition if assumed profit reached
                 profit_sell_price = row_of_numbers2[1]
                 transaction_day = counter2+250
-                transaction=['Day:', transaction_day, ' Profit sell price', profit_sell_price, 'result: ', result_in_the_day]
-                print(transaction,  bcolors.Green + ' Gain' + bcolors.ENDC)
+                transaction=[transaction_day, profit_sell_price, result_in_the_day]
+                print('Day: {0}. Profit sell price: {1}. The result: {2} , GAIN.'.format(transaction[0], transaction[1], transaction[2]))
                 transactions.append(transaction)
                 transaction_on = 0
                 final_result = final_result + result_in_the_day
@@ -144,8 +148,8 @@ def trading_strategy_sim(list_of_numbers, sell_percent_profit, sell_percent_loss
             if ((result_in_the_day < sell_percent_loss) & transaction_on & (result_in_the_day != 0)): # if trade loss
                 loss_sell_price = row_of_numbers2[1]
                 transaction_day = counter2+250
-                transaction=['Day:', transaction_day, ' Loss sell price', loss_sell_price, 'result: ', result_in_the_day]
-                print(transaction, bcolors.Red + ' Loss' + bcolors.ENDC)
+                transaction=[transaction_day, loss_sell_price, result_in_the_day]
+                print('Day: {0}. Loss sell price: {1}. The result: {2} , LOSS.'.format(transaction[0], transaction[1], transaction[2]))
                 transactions.append(transaction)
                 transaction_on = 0
                 final_result = final_result + result_in_the_day
@@ -176,22 +180,6 @@ def clean_file_names(list_of_files):
     return cleaned_list
 
 
-class bcolors:
-    '''To include colors in display of profit or loss transactions.
-    Brings effect in windows terminal, does not bring effect in Raspbian.'''
-    
-    Blue = '\033[94m'
-    Green = '\033[92m'
-    Red = '\033[91m'
-    ENDC = '\033[0m'
-
-    def disable(self):
-        self.Blue = ''
-        self.Green = ''
-        self.Red = ''
-        self.ENDC = ''
-
-
 def main():
     # File names filter for search.
     file_name_pattern = "*.csv"
@@ -201,7 +189,13 @@ def main():
 
     #  Find files as per specified file mask and under specified folder
     files_list =  find_file_names(file_name_pattern, search_path)
-    print("\n\nFound csv files for analysis:")
+
+    if len(files_list) > 0:
+        print("\nFound below csv files for analysis:")
+    else:
+        print("\n\nNot found any csv files for analysis. \nApplication ends.")
+        exit()
+
     for csv_file_name in files_list:
         print('\t' + csv_file_name[2:])
 
@@ -212,7 +206,7 @@ def main():
     file_counter = 0
     instruments_results=dict()
 
-    # Repeats same traiding simulation for csv files included in the files list.
+    # executes traiding simulation for all csv files included in the files list.
     for file_counter in range(0,len(files_list)):
 
         file = files_list[file_counter]
@@ -225,20 +219,27 @@ def main():
         
         final_result = trading_strategy_sim(list_of_numbers, 0.05, -0.05)
         
-        print('-----> Final result of',file[2:],'analysis is:', round(final_result*100, 4),'%')
+        print('\n--> STRATEGY TESTING OF',file[2:],'BRINGS RESULT OF', round(final_result*100, 4),'%')
         instruments_results[file] = round(final_result*100, 4)
 
-    print('\nResults of the traiding strategy for each instrument (csv file):')
-    for i in instruments_results:
-        if instruments_results[i] > 0:
-            result = bcolors.Green + str(instruments_results[i]) + ' %' + bcolors.ENDC
-        else:
-            result = bcolors.Red + str(instruments_results[i]) + ' %' + bcolors.ENDC
-        print(i[2:],'\t results in: ', result)
+    print('\nBELOW, OVERVIEW OF THE TRAINDING STRATEGY RESULTS FOR EACH INSTRUMENT:')
 
-    print('\nThe end of the execution.')
+    max_lenght_file_name = 0
+    for i in instruments_results:
+        if max_lenght_file_name < len(i):
+            max_lenght_file_name = len(i)
+
+    result_sum = 0
+    for instrument in instruments_results.keys():
+        result_display_shift = max_lenght_file_name - len(instrument)
+        display_result = instruments_results[instrument]
+        space = ' '
+        print(f'Instrument {instrument[2:(len(instrument)-4)]} {space*result_display_shift} {display_result:>8.2f} %')
+        result_sum = instruments_results[instrument]
+    average_result = result_sum / len(instruments_results)
+    print(f'\nAverage result for all periods is: {average_result:>8.2f} %')
+    print('\nAppication end.')
     
 
 if __name__ == "__main__":
     main()
-
